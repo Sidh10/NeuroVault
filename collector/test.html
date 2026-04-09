@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroVault — Collector Test Harness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0A0A0F;
+      color: #F0F0F5;
+      font-family: 'Inter', system-ui, sans-serif;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #7F77DD;
+      font-weight: 500;
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: #8888A0;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #8888A0;
+    }
+    .status-dot.open { background: #1D9E75; }
+    .status-dot.connecting { background: #EF9F27; }
+    .status-dot.error, .status-dot.closed { background: #E24B4A; }
+    .status-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #8888A0;
+    }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+    button {
+      background: #13131A;
+      color: #F0F0F5;
+      border: 1px solid #2a2a35;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    button:hover { border-color: #7F77DD; }
+    button.active { border-color: #1D9E75; color: #1D9E75; }
+    button.danger { border-color: #E24B4A; color: #E24B4A; }
+
+    /* ── Counters grid ── */
+    .counters {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .counter-card {
+      background: #13131A;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .counter-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 500;
+      color: #7F77DD;
+      line-height: 1.2;
+    }
+    .counter-label {
+      font-size: 0.75rem;
+      color: #8888A0;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Event log ── */
+    .event-log {
+      background: #13131A;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .event-log h2 {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8888A0;
+      margin-bottom: 0.75rem;
+    }
+    .event-entry {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .event-entry.mouse { background: #7F77DD10; border-left: 3px solid #7F77DD; }
+    .event-entry.key   { background: #1D9E7510; border-left: 3px solid #1D9E75; }
+    .event-entry.scroll { background: #EF9F2710; border-left: 3px solid #EF9F27; }
+
+    /* ── Interaction area ── */
+    .interaction-area {
+      background: #13131A;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px dashed #2a2a35;
+    }
+    .interaction-area h2 {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8888A0;
+      margin-bottom: 0.75rem;
+    }
+    .interaction-area textarea {
+      width: 100%;
+      background: #0A0A0F;
+      color: #F0F0F5;
+      border: 1px solid #2a2a35;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .interaction-area textarea:focus {
+      outline: none;
+      border-color: #7F77DD;
+    }
+    .interaction-area p {
+      color: #8888A0;
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1D9E75;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <h1>NeuroVault — Collector Test Harness</h1>
+  <p class="subtitle">Move your mouse, type text, and scroll to generate telemetry events.</p>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-label" id="statusLabel">DISCONNECTED</span>
+    <div class="controls">
+      <button id="btnStart" class="active">Start</button>
+      <button id="btnStop" class="danger">Stop</button>
+      <button id="btnCopyStats">Copy Stats</button>
+    </div>
+  </div>
+
+  <!-- Live counters -->
+  <div class="counters">
+    <div class="counter-card">
+      <div class="counter-value" id="mouseCount">0</div>
+      <div class="counter-label">Mouse Events</div>
+    </div>
+    <div class="counter-card">
+      <div class="counter-value" id="keyCount">0</div>
+      <div class="counter-label">Keystrokes</div>
+    </div>
+    <div class="counter-card">
+      <div class="counter-value" id="scrollCount">0</div>
+      <div class="counter-label">Scroll Events</div>
+    </div>
+    <div class="counter-card">
+      <div class="counter-value" id="uptime">0.0s</div>
+      <div class="counter-label">Uptime</div>
+    </div>
+  </div>
+
+  <!-- Interaction area (type here to generate key events) -->
+  <div class="interaction-area">
+    <h2>Type here to generate keystroke events</h2>
+    <textarea id="typeArea" placeholder="Start typing... each key press/release pair becomes a telemetry event with flight_time_ms computed."></textarea>
+    <p>Scroll anywhere on this page to generate scroll events. Mouse movement is captured automatically.</p>
+  </div>
+
+  <!-- Last 3 raw events -->
+  <div class="event-log">
+    <h2>Last 3 Raw Events</h2>
+    <div id="eventLogEntries">
+      <div class="event-entry" style="color: #8888A0;">Waiting for events...</div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast">Copied!</div>
+
+  <!-- Spacer for scroll testing -->
+  <div style="height: 300px; display: flex; align-items: center; justify-content: center; color: #2a2a35; font-size: 0.75rem;">
+    ↕ Scroll in this area to generate scroll events
+  </div>
+
+  <!-- Load collector -->
+  <script src="collector.js"></script>
+
+  <script>
+    // ── State ──
+    const WS_URL = 'ws://localhost:8000/ws/test';
+    let collector = null;
+    const recentEvents = [];  // last 3 events
+    let statsInterval = null;
+
+    // ── DOM refs ──
+    const statusDot = document.getElementById('statusDot');
+    const statusLabel = document.getElementById('statusLabel');
+    const mouseCountEl = document.getElementById('mouseCount');
+    const keyCountEl = document.getElementById('keyCount');
+    const scrollCountEl = document.getElementById('scrollCount');
+    const uptimeEl = document.getElementById('uptime');
+    const eventLogEntries = document.getElementById('eventLogEntries');
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const btnCopyStats = document.getElementById('btnCopyStats');
+    const toast = document.getElementById('toast');
+
+    // ── Initialize collector ──
+    function initCollector() {
+      collector = new NeuroCollector(WS_URL);
+      collector.setSessionId('test-harness-' + Date.now());
+
+      collector.onConnectionChange = (state) => {
+        statusDot.className = 'status-dot ' + state;
+        statusLabel.textContent = state.toUpperCase();
+      };
+
+      collector.onRawEvent = (evt) => {
+        recentEvents.unshift(evt);
+        if (recentEvents.length > 3) recentEvents.pop();
+        renderEventLog();
+      };
+    }
+
+    // ── Render event log ──
+    function renderEventLog() {
+      if (recentEvents.length === 0) return;
+
+      eventLogEntries.innerHTML = recentEvents.map((evt) => {
+        const cls = evt.type;
+        const json = JSON.stringify(evt, null, 2);
+        return `<div class="event-entry ${cls}">${json}</div>`;
+      }).join('');
+    }
+
+    // ── Update counters ──
+    function updateCounters() {
+      if (!collector) return;
+      const stats = collector.getStats();
+      mouseCountEl.textContent = stats.mouse_count.toLocaleString();
+      keyCountEl.textContent = stats.key_count.toLocaleString();
+      scrollCountEl.textContent = stats.scroll_count.toLocaleString();
+      uptimeEl.textContent = stats.uptime_seconds.toFixed(1) + 's';
+    }
+
+    // ── Button handlers ──
+    btnStart.addEventListener('click', () => {
+      if (collector && collector._running) return;
+      initCollector();
+      collector.start();
+      statsInterval = setInterval(updateCounters, 1000);
+      btnStart.style.pointerEvents = 'none';
+      btnStart.style.opacity = '0.5';
+      btnStop.style.opacity = '1';
+    });
+
+    btnStop.addEventListener('click', () => {
+      if (collector) {
+        collector.stop();
+      }
+      if (statsInterval) {
+        clearInterval(statsInterval);
+        statsInterval = null;
+      }
+      updateCounters();
+      btnStart.style.pointerEvents = 'auto';
+      btnStart.style.opacity = '1';
+      btnStop.style.opacity = '0.5';
+    });
+
+    btnCopyStats.addEventListener('click', () => {
+      if (!collector) return;
+      const stats = collector.getStats();
+      const text = JSON.stringify(stats, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        toast.textContent = 'Stats copied!';
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 1500);
+      }).catch(() => {
+        // Fallback for non-HTTPS contexts
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast.textContent = 'Stats copied!';
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 1500);
+      });
+    });
+
+    // ── Auto-start ──
+    initCollector();
+    collector.start();
+    statsInterval = setInterval(updateCounters, 1000);
+    btnStart.style.pointerEvents = 'none';
+    btnStart.style.opacity = '0.5';
+  </script>
+
+</body>
+</html>
