@@ -13,8 +13,16 @@ export function ShapBreakdown({ shapFeatures }) {
   // If no data, show placeholder
   if (data.length === 0) {
     return (
-      <div style={{ width: '100%', height: 250, background: 'var(--surface)', borderRadius: 8, padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>Awaiting telemetry...</div>
+      <div style={{ width: '100%', height: 250, background: 'var(--surface)', borderRadius: 8, padding: '1rem', display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem', fontFamily: 'var(--font-sans)' }}>Top Behavioral Drivers</h3>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', justifyContent: 'center', padding: '0 10px' }}>
+            {[...Array(5)].map((_, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '4px' }} />
+                    <div className="skeleton" style={{ width: `${100 - i * 15}%`, height: '12px', borderRadius: '4px' }} />
+                </div>
+            ))}
+        </div>
       </div>
     );
   }

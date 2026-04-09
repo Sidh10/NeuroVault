@@ -18,7 +18,8 @@ export function SessionLock({ topAnomaly }) {
       backgroundColor: 'var(--danger)',
       color: '#FFFFFF',
       textAlign: 'center',
-      padding: '2rem'
+      padding: '2rem',
+      animation: 'fadeIn 200ms ease-in'
     }}>
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '1.5rem' }}>
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

@@ -7,7 +7,7 @@ import { LiveGraph } from './components/LiveGraph';
 import { ShapBreakdown } from './components/ShapBreakdown';
 
 function App() {
-  const [sessionId] = useState(() => 'user-session-' + Date.now()); // Unique session id for test
+  const [sessionId, setSessionId] = useState(() => 'user-session-' + Date.now());
   const [isEnrolled, setIsEnrolled] = useState(false);
   
   const { 
@@ -29,6 +29,10 @@ function App() {
         sessionId={sessionId} 
         collectorRef={collectorRef}
         onEnrollSuccess={() => setIsEnrolled(true)}
+        onDemoSuccess={() => {
+            setSessionId('demo');
+            setIsEnrolled(true);
+        }}
       />
     );
   }

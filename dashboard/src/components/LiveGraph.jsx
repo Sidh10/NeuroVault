@@ -1,5 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Dot } from 'recharts';
+
+const PulsingDot = (props) => {
+  const { cx, cy, index, data } = props;
+  if (!cx || !cy || !data) return null;
+  // Use length from parent data
+  if (index === data.length - 1) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={4} fill="var(--primary)" />
+        <circle cx={cx} cy={cy} fill="transparent" stroke="var(--primary)" style={{ animation: 'pulse 2s infinite ease-out' }} />
+      </g>
+    );
+  }
+  return null;
+};
 
 export function LiveGraph({ currentScore }) {
   // Rolling 60-point window (5 minutes if updated every 5s)
@@ -40,7 +55,7 @@ export function LiveGraph({ currentScore }) {
               dataKey="score" 
               stroke="var(--primary)" 
               strokeWidth={2} 
-              dot={false}
+              dot={(props) => <PulsingDot {...props} data={data} />}
               isAnimationActive={false}
             />
           </LineChart>

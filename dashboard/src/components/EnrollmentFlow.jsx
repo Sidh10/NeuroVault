@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export function EnrollmentFlow({ sessionId, collectorRef, onEnrollSuccess }) {
+export function EnrollmentFlow({ sessionId, collectorRef, onEnrollSuccess, onDemoSuccess }) {
   const [elapsed, setElapsed] = useState(0);
   const [stats, setStats] = useState({ mouse_count: 0, key_count: 0, scroll_count: 0 });
   const [isEnrolling, setIsEnrolling] = useState(false);
@@ -42,7 +42,7 @@ export function EnrollmentFlow({ sessionId, collectorRef, onEnrollSuccess }) {
     try {
       const res = await fetch(`http://localhost:8000/demo/load`, { method: 'POST' });
       await res.json();
-      onEnrollSuccess(); // Assume demo loaded seamlessly
+      if (onDemoSuccess) onDemoSuccess();
     } catch (e) {
       alert("Error loading demo: " + e.message);
     }

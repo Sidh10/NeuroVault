@@ -37,7 +37,7 @@ export function TrustRing({ score }) {
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1s ease-in-out, stroke 1s ease' }}
+          style={{ transition: 'stroke-dashoffset 0.4s ease, stroke 0.4s ease' }}
         />
       </svg>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 48, fontWeight: 500, color: 'var(--text-primary)', zIndex: 1 }}>
