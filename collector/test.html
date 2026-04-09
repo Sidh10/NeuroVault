@@ -238,7 +238,7 @@
 
   <script>
     // ── State ──
-    const WS_URL = 'ws://localhost:8000/ws/test';
+    const WS_URL = 'ws://localhost:8000/ws/collect/test1';
     let collector = null;
     const recentEvents = [];  // last 3 events
     let statsInterval = null;
@@ -259,7 +259,7 @@
     // ── Initialize collector ──
     function initCollector() {
       collector = new NeuroCollector(WS_URL);
-      collector.setSessionId('test-harness-' + Date.now());
+      collector.setSessionId('test1');
 
       collector.onConnectionChange = (state) => {
         statusDot.className = 'status-dot ' + state;
