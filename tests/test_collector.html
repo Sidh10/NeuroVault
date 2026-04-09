@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NeuroVault — WS Collector Test</title>
+  <style>
+    body {
+      background: #0A0A0F;
+      color: #F0F0F5;
+      font-family: 'Inter', system-ui, sans-serif;
+      padding: 2rem;
+    }
+    h1 { color: #7F77DD; font-weight: 500; }
+    #log {
+      background: #13131A;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .pass { color: #1D9E75; }
+    .fail { color: #E24B4A; }
+    .info { color: #8888A0; }
+  </style>
+</head>
+<body>
+  <h1>Phase 2 — Test 2: WebSocket Collector Round-Trip</h1>
+  <div id="log"></div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    function log(msg, cls = 'info') {
+      const line = document.createElement('div');
+      line.className = cls;
+      line.textContent = `[${new Date().toISOString().slice(11,23)}] ${msg}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(msg);
+    }
+
+    // Hardcoded telemetry batch matching the blueprint schema
+    const testBatch = {
+      user_id: "test_user",
+      session_id: "a3f1c9e7-4b2d-4f8a-9c1e-7d3b5a2f8e4c",
+      batch_seq: 0,
+      timestamp: Date.now(),
+      events: [
+        { type: "mousemove", x: 512.0, y: 384.0, dx: 2.3, dy: -1.1, t: Date.now() },
+        { type: "keydown", key: "a", t: Date.now(), flight_time: 87.3, dwell_time: null },
+        { type: "keyup", key: "a", t: Date.now(), flight_time: null, dwell_time: 70.0 },
+        { type: "scroll", delta_y: -120.0, velocity: 0.45, t: Date.now() }
+      ]
+    };
+
+    log('Connecting to ws://localhost:8000/ws/test ...');
+
+    const ws = new WebSocket('ws://localhost:8000/ws/test');
+
+    ws.onopen = () => {
+      log('WebSocket CONNECTED', 'pass');
+      const payload = JSON.stringify(testBatch);
+      log(`Sending batch (${payload.length} bytes, ${testBatch.events.length} events)...`);
+      ws.send(payload);
+    };
+
+    ws.onmessage = (event) => {
+      const received = JSON.parse(event.data);
+      log('Echo received!', 'pass');
+
+      // Verify round-trip integrity
+      const sentStr = JSON.stringify(testBatch);
+      const recvStr = JSON.stringify(received);
+
+      if (sentStr === recvStr) {
+        log('ROUND-TRIP INTEGRITY: PASS — sent and received match exactly', 'pass');
+        log(`  user_id: ${received.user_id}`, 'pass');
+        log(`  session_id: ${received.session_id}`, 'pass');
+        log(`  events: ${received.events.length} (mousemove, keydown, keyup, scroll)`, 'pass');
+      } else {
+        log('ROUND-TRIP INTEGRITY: FAIL — mismatch detected', 'fail');
+        log(`  Sent:     ${sentStr.slice(0, 80)}...`, 'fail');
+        log(`  Received: ${recvStr.slice(0, 80)}...`, 'fail');
+      }
+
+      log('');
+      log('TEST 2 COMPLETE', 'pass');
+      ws.close();
+    };
+
+    ws.onerror = (err) => {
+      log('WebSocket ERROR — is test_websocket.py running?', 'fail');
+      log('Run: python tests/test_websocket.py', 'fail');
+    };
+
+    ws.onclose = () => {
+      log('WebSocket closed', 'info');
+    };
+  </script>
+</body>
+</html>
