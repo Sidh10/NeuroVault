@@ -314,32 +314,28 @@ from models.schemas import MouseEvent, KeyEvent, ScrollEvent, TelemetryBatch
 
 # Ordered list — must match model training order
 FEATURE_NAMES: List[str] = [
-    # Mouse (6)
-    "mouse_avg_speed",
+    # Mouse (4)
+    "mouse_speed_mean",
     "mouse_speed_std",
-    "mouse_avg_jitter",
-    "mouse_jitter_std",
-    "mouse_avg_curvature",
-    "mouse_direction_changes",
-    # Keystroke (5)
-    "key_avg_flight_time",
-    "key_flight_time_std",
-    "key_avg_dwell_time",
-    "key_dwell_time_std",
-    "key_typing_speed",
-    # Scroll (4)
-    "scroll_avg_velocity",
-    "scroll_velocity_std",
-    "scroll_frequency",
-    "scroll_avg_distance",
-]  # 15 features total
+    "mouse_accel_mean",
+    "direction_change_rate",
+    # Keystroke (4)
+    "flight_time_mean",
+    "flight_time_std",
+    "keystroke_interval_mean",
+    "keystroke_interval_std",
+    # Scroll & Meta (4)
+    "scroll_velocity_mean",
+    "scroll_burst_count",
+    "pause_frequency",
+    "movement_entropy"
+]  # 12 features total
 
 
 def extract_mouse_features(events: List[MouseEvent]) -> Dict[str, float]:
     """
     Returns dict with keys:
-    mouse_avg_speed, mouse_speed_std, mouse_avg_jitter,
-    mouse_jitter_std, mouse_avg_curvature, mouse_direction_changes
+    mouse_speed_mean, mouse_speed_std, mouse_accel_mean, direction_change_rate
     Returns zeros if fewer than 3 events.
     """
 
@@ -347,24 +343,21 @@ def extract_mouse_features(events: List[MouseEvent]) -> Dict[str, float]:
 def extract_keystroke_features(events: List[KeyEvent]) -> Dict[str, float]:
     """
     Returns dict with keys:
-    key_avg_flight_time, key_flight_time_std, key_avg_dwell_time,
-    key_dwell_time_std, key_typing_speed
+    flight_time_mean, flight_time_std, keystroke_interval_mean, keystroke_interval_std
     Returns zeros if fewer than 2 events.
     """
 
 
-def extract_scroll_features(events: List[ScrollEvent]) -> Dict[str, float]:
+def extract_scroll_features(events: List[ScrollEvent], all_events: List[TelemetryEvent]) -> Dict[str, float]:
     """
     Returns dict with keys:
-    scroll_avg_velocity, scroll_velocity_std,
-    scroll_frequency, scroll_avg_distance
-    Returns zeros if no scroll events.
+    scroll_velocity_mean, scroll_burst_count, pause_frequency, movement_entropy
     """
 
 
 def extract_features(batch: TelemetryBatch) -> np.ndarray:
     """
-    Combines all extractors. Returns a 1D numpy array of shape (15,)
+    Combines all extractors. Returns a 1D numpy array of shape (12,)
     in the order defined by FEATURE_NAMES.
     """
 ```
